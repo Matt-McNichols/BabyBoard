@@ -7,10 +7,12 @@
 
 #include <msp430g2553.h>
 #include "uart.h"
+#include <stdio.h>
+
 
 int main(void)
 {
-    char flag = 0;
+  char flag = 0;
   WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
   unsigned char c = 'a';
   unsigned char arr[128] = "\nIn the year of '39, assembled here the volunteers, in the days when the lands were few.  Here the ship sailed out into the ...";
@@ -22,6 +24,8 @@ int main(void)
 
   init_uart(UART_BAUD_9600);
 
+
+/*
   putch(c);
   __delay_cycles(20000);
 
@@ -50,5 +54,5 @@ int main(void)
   }
   
   while(1);
-
+*/
 }

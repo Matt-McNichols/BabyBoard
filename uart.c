@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "msp430g2553.h"
+#include "uart.h"
 
 /*
 In asynchronous mode, the USCI_Ax modules connect the MSP430 to an external
@@ -38,37 +39,48 @@ use usci a0
 #define RXD BIT1
 
 void init_uart(char baud){
-   DCOCTL = 0; // Select lowest DCOx and MODx settings
-   BCSCTL1 = CALBC1_1MHZ; // Set DCO
-   DCOCTL = CALDCO_1MHZ;
-   //P2DIR |= 0xFF; // All P2.x outputs
-   //P2OUT &= 0x00; // All P2.x reset
-   //P1SEL |= RXD + TXD ; // P1.1 = RXD, P1.2=TXD
-   //P1SEL2 |= RXD + TXD ; // P1.1 = RXD, P1.2=TXD
-   P1DIR |= RXLED + TXLED;
-   P1OUT &= 0x00;
-   // SMCLK
-   UCA0CTL1 |= UCSSEL_2; 
-   // baud rate 
-   UCA0BR0 = 0x08; // 1MHz 115200
-   UCA0BR1 = 0x00; // 1MHz 115200
-   UCA0MCTL = UCBRS2 + UCBRS0; // Modulation UCBRSx = 5
-   UCA0CTL1 &= ~UCSWRST; // **Initialize USCI state machine**
-   UC0IE |= UCA0RXIE; // Enable USCI_A0 RX interrupt
-  /*
-   __bis_SR_register(CPUOFF + GIE); // Enter LPM0 w/ int until Byte RXed
-   while (1)
-   { }
-  */
+
+	// make sure uart is not already initialized
+	uninit_uart();
+
+	//set master clock
+    DCOCTL = 0; // Select lowest DCOx and MODx settings
+    BCSCTL1 = CALBC1_1MHZ; // Set DCO
+    DCOCTL = CALDCO_1MHZ;
+
+    // SMCLK is used as clock source for UART
+    UCA0CTL1 |= UCSSEL_2;
+
+    // baud rate 115200
+    UCA0BR0 = 0x08; // 1MHz 115200
+    UCA0BR1 = 0x00; // 1MHz 115200
+    UCA0MCTL = UCBRS2 + UCBRS0; // Modulation UCBRSx = 5
+
+    // set reset pin to 0 to start USCI state machine
+    UCA0CTL1 &= ~UCSWRST;
 }
 
+void uninit_uart(void){
+	// mask reset pin to be 1
+	UCA0CTL1 |= UCSWRST;
+}
 
 // putch: Send an unsigned char via UART. 
-void putch(unsigned char c);
+void putch(unsigned char c){
+	// Check that the buffer is ready
+	while (!(IFG2 & UCA0TXIFG));
+	// store char in TX buffer
+	UCA0TXBUF = c;
+}
 
-
+/*
 // put_str: Send each element of a null-terminated array of unsigned chars via UART.  Do not send the final null-termination character.
 void put_str(unsigned char* c);
     // just call putch until null char
+*/
+int uart_rx(char block){
+	// char in buffer
+	// no char in buffer and block == 0 return -1
+	// no char in buffer and block == 1 return the next char received
+}
 
-int uart_rx(char block);
