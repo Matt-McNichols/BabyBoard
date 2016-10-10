@@ -15,7 +15,7 @@ int main(void)
   unsigned char c = 'a';
   unsigned char arr[128] = "\nIn the year of '39, assembled here the volunteers, in the days when the lands were few.  Here the ship sailed out into the ...";
 
-  P2DIR = BIT1;
+  P2DIR = BIT1; // set P2.x outputs
   P2OUT = 0x00;
   P1SEL = 0xA8;
   P1SEL2 = 0xA8;
